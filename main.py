@@ -15,14 +15,16 @@ async def add_bob(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo = update.message.reply_to_message.photo[-1]
         file = await photo.get_file()
         image_bytes = io.BytesIO()
-        await file.download(out=image_bytes)
+        await file.download_to_memory(out=image_bytes)
         image_bytes.seek(0)
 
         background = Image.open(image_bytes).convert("RGBA")
         overlay = Image.open(BOB_PATH).convert("RGBA")
+
         scale = background.height // 5
         overlay = overlay.resize((scale, scale))
         position = (10, background.height - overlay.height - 10)
+
         background.paste(overlay, position, overlay)
 
         result = io.BytesIO()
