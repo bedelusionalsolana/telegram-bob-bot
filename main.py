@@ -15,7 +15,6 @@ async def add_bob(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         print("Received /bob command")
 
-        # Check if the command is in reply to a photo
         if update.message.reply_to_message and update.message.reply_to_message.photo:
             photo = update.message.reply_to_message.photo[-1]
             file = await photo.get_file()
@@ -23,32 +22,25 @@ async def add_bob(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await file.download_to_memory(out=image_bytes)
             image_bytes.seek(0)
 
-            # Open background image
             background = Image.open(image_bytes).convert("RGBA")
 
-            # Load Bob
-            try:
-                overlay = Image.open(BOB_PATH).convert("RGBA")
-            except Exception as e:
-                await update.message.reply_text(f"Error loading bob.png: {e}")
-                print(f"Error loading bob.png: {e}")
-                return
-
-            # Resize Bob
-            scale = background.height // 5
+            # Load and resize Bob
+            overlay = Image.open(BOB_PATH).convert("RGBA")
+            scale = background.height // 3  # Bigger size
             overlay = overlay.resize((scale, scale))
 
-            # Paste position: bottom-left
-            position = (10, background.height - overlay.height - 10)
+            # Position Bob fully in the bottom-left corner
+            position = (0, background.height - overlay.height)
+
+            # Paste Bob
             background.paste(overlay, position, overlay)
 
-            # Save result to memory
+            # Save and send result
             result = io.BytesIO()
             result.name = "result.png"
             background.save(result, format="PNG")
             result.seek(0)
 
-            # Send back the image
             await update.message.reply_photo(photo=result)
         else:
             await update.message.reply_text("Please reply to an image with /bob.")
